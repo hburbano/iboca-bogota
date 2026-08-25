@@ -1,13 +1,8 @@
-import { unstable_cache } from "next/cache";
-
 export type IbocaStation = {
   id: number;
   nombre: string;
   abreviatura: string;
-  latitud: string;
-  longitud: string;
   localidad: string;
-  estado: string;
   iboca: number | string;
   pm25_iboca: number | string;
   pm10_iboca: number | string;
@@ -28,26 +23,66 @@ export type IbocaStation = {
   rango_color_o3: string;
 };
 
-type IbocaApiResponse = {
-  success: boolean;
-  error: string;
-  data: Array<IbocaStation & { imagen?: string }>;
-};
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
 
-const IBOCA_STATIONS_URL =
-  "http://iboca.ambientebogota.gov.co/iboca/service/allstations/true";
+function asStringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value !== "" ? value : null;
+}
 
-export function asNumber(value: number | string | null | undefined): number | null {
+function asIndex(value: unknown): number | string {
+  if (typeof value === "number" || typeof value === "string") return value;
+  return "--";
+}
+
+function asConc(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+/** Keep only fields the UI and city index need. Drops ~4.5MB photos plus GIS metadata. */
+export function slimStation(raw: Record<string, unknown>): IbocaStation {
+  return {
+    id: Number(raw.id),
+    nombre: asString(raw.nombre),
+    abreviatura: asString(raw.abreviatura),
+    localidad: asString(raw.localidad),
+    iboca: asIndex(raw.iboca),
+    pm25_iboca: asIndex(raw.pm25_iboca),
+    pm10_iboca: asIndex(raw.pm10_iboca),
+    O3_iboca: asIndex(raw.O3_iboca),
+    pm25_concentracion: asConc(raw.pm25_concentracion),
+    pm10_concentracion: asConc(raw.pm10_concentracion),
+    O3_concentracion: asConc(raw.O3_concentracion),
+    pm25_fecha: asStringOrNull(raw.pm25_fecha),
+    pm10_fecha: asStringOrNull(raw.pm10_fecha),
+    pmO3_fecha: asStringOrNull(raw.pmO3_fecha),
+    rango_nombre: asString(raw.rango_nombre),
+    rango_color: asString(raw.rango_color, "94A3B8"),
+    rango_nombre_pm25: asString(raw.rango_nombre_pm25),
+    rango_nombre_pm10: asString(raw.rango_nombre_pm10),
+    rango_nombre_o3: asString(raw.rango_nombre_o3),
+    rango_color_pm25: asString(raw.rango_color_pm25, "94A3B8"),
+    rango_color_pm10: asString(raw.rango_color_pm10, "94A3B8"),
+    rango_color_o3: asString(raw.rango_color_o3, "94A3B8"),
+  };
+}
+
+export function asNumber(
+  value: number | string | null | undefined,
+): number | null {
   if (value === null || value === undefined || value === "--" || value === "") {
     return null;
   }
-  const n = typeof value === "number" ? value : Number(String(value).replace(",", "."));
+  const n =
+    typeof value === "number" ? value : Number(String(value).replace(",", "."));
   return Number.isFinite(n) ? n : null;
 }
 
 /** User-facing IBOCA band label (Spanish copy). */
 export function levelLabel(label: string | null | undefined): string {
-  if (!label || label === "--") return "Sin clasificación";
+  if (!label || label === "--" || label === "Sin data")
+    return "Sin clasificación";
   return label;
 }
 
@@ -94,31 +129,3 @@ export function levelFromValue(value: number): { label: string; hex: string } {
   if (value <= 200) return { label: "Alto", hex: "FF0000" };
   return { label: "Peligroso", hex: "8F3F97" };
 }
-
-async function loadStationsUncached(): Promise<IbocaStation[]> {
-  const res = await fetch(IBOCA_STATIONS_URL, {
-    cache: "no-store",
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "iboca-bogota/0.1",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`IBOCA API responded with ${res.status}`);
-  }
-
-  const json = (await res.json()) as IbocaApiResponse;
-  if (!json.success || !Array.isArray(json.data)) {
-    throw new Error(json.error || "Unexpected IBOCA payload");
-  }
-
-  // Drop base64 station photos (~6MB) before caching.
-  return json.data.map(({ imagen: _imagen, ...station }) => station);
-}
-
-export const fetchIbocaStations = unstable_cache(
-  loadStationsUncached,
-  ["iboca-stations-slim"],
-  { revalidate: 300 },
-);

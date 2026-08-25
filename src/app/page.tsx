@@ -1,12 +1,13 @@
-import { StationExplorer } from "@/components/StationExplorer";
-import {
-  cityIndex,
-  fetchIbocaStations,
-  latestReadingAt,
-  type IbocaStation,
-} from "@/lib/iboca";
+import dynamic from "next/dynamic";
+import { cityIndex, latestReadingAt, type IbocaStation } from "@/lib/iboca";
+import { fetchIbocaStations } from "@/lib/fetch-stations";
 
 export const revalidate = 300;
+export const maxDuration = 60;
+
+const StationExplorer = dynamic(() =>
+  import("@/components/StationExplorer").then((mod) => mod.StationExplorer),
+);
 
 function formatUpdated(isoLike: string | null) {
   if (!isoLike) return "Sin actualización reciente";

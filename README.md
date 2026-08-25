@@ -1,25 +1,37 @@
-# IBOCA · Aire de Bogotá
+# IBOCA · Bogotá Air Quality
 
-Vista en vivo del **Índice Bogotano de Calidad del Aire (IBOCA)** con Next.js, React Aria Components y Tailwind CSS.
+Live view of Bogotá’s **Air Quality and Health Risk Index (IBOCA)** built with Next.js, React Aria Components, and Tailwind CSS.
 
-## Datos
+User-facing UI copy is in Spanish; source code, comments, and this README are in English.
 
-Lee el backend público del mapa IBOCA:
+## Data
+
+Reads the public IBOCA map backend:
 
 `http://iboca.ambientebogota.gov.co/iboca/service/allstations/true`
 
-El fetch corre en el servidor (o en `/api/stations`) para evitar CORS y se revalida cada 5 minutos.
+Fetching runs on the server (or via `/api/stations`) to avoid CORS and revalidates every 5 minutes.
 
-## Desarrollo
+## Development
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
+
+## Scripts
+
+| Command      | Description              |
+| ------------ | ------------------------ |
+| `pnpm dev`   | Start the Next.js app    |
+| `pnpm build` | Production build         |
+| `pnpm start` | Serve the production app |
+| `pnpm lint`  | Run ESLint               |
 
 ## Stack
 
 - Next.js App Router
 - React Aria Components
 - Tailwind CSS v4
-- Tipografía: Fraunces + Manrope
+- pnpm
+- Typography: Fraunces + Manrope

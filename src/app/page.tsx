@@ -28,7 +28,8 @@ async function loadStations(): Promise<
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "No se pudo cargar IBOCA",
+      message:
+        error instanceof Error ? error.message : "No se pudo cargar IBOCA",
     };
   }
 }
@@ -121,7 +122,10 @@ export default async function Home() {
         <div className="mountain-band pointer-events-none absolute inset-x-0 bottom-0 h-36 md:h-48" />
       </header>
 
-      <main id="estaciones" className="relative z-10 -mt-8 grow rounded-t-[2rem] bg-[color-mix(in_srgb,var(--sky-horizon)_88%,white)]">
+      <main
+        id="estaciones"
+        className="relative z-10 -mt-8 grow rounded-t-[2rem] bg-[color-mix(in_srgb,var(--sky-horizon)_88%,white)]"
+      >
         {result.ok ? (
           <StationExplorer stations={stations} />
         ) : (
@@ -137,8 +141,8 @@ export default async function Home() {
       <footer className="border-t border-[var(--line)] px-5 py-8 text-sm text-[var(--ink-muted)] md:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <p>
-            Fuente: Secretaría Distrital de Ambiente — IBOCA / RMCAB. Datos no
-            oficiales de la entidad; espejo de lectura pública.
+            Fuente: Secretaría Distrital de Ambiente — IBOCA / RMCAB. Espejo no
+            oficial de lecturas públicas.
           </p>
           <p>Actualización cada 5 minutos</p>
         </div>

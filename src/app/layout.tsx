@@ -15,7 +15,7 @@ const body = Manrope({
 export const metadata: Metadata = {
   title: "IBOCA · Aire de Bogotá",
   description:
-    "Vista en vivo del Índice Bogotano de Calidad del Aire (IBOCA) y estaciones RMCAB.",
+    "Vista en vivo del Índice Bogotano de Calidad del Aire y Riesgo en Salud (IBOCA) y estaciones RMCAB.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

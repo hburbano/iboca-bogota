@@ -12,7 +12,7 @@ import {
   SelectValue,
   Popover,
 } from "react-aria-components";
-import { asNumber, type IbocaStation } from "@/lib/iboca";
+import { asNumber, levelLabel, type IbocaStation } from "@/lib/iboca";
 
 type Pollutant = "iboca" | "pm25" | "pm10" | "o3";
 
@@ -29,7 +29,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.pm25_iboca),
         conc: station.pm25_concentracion,
-        label: station.rango_nombre_pm25,
+        label: levelLabel(station.rango_nombre_pm25),
         color: station.rango_color_pm25,
         unit: "µg/m³",
       };
@@ -37,7 +37,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.pm10_iboca),
         conc: station.pm10_concentracion,
-        label: station.rango_nombre_pm10,
+        label: levelLabel(station.rango_nombre_pm10),
         color: station.rango_color_pm10,
         unit: "µg/m³",
       };
@@ -45,7 +45,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.O3_iboca),
         conc: station.O3_concentracion,
-        label: station.rango_nombre_o3,
+        label: levelLabel(station.rango_nombre_o3),
         color: station.rango_color_o3,
         unit: "µg/m³",
       };
@@ -53,7 +53,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.iboca),
         conc: null as number | null,
-        label: station.rango_nombre,
+        label: levelLabel(station.rango_nombre),
         color: station.rango_color,
         unit: null as string | null,
       };

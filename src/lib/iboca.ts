@@ -45,6 +45,12 @@ export function asNumber(value: number | string | null | undefined): number | nu
   return Number.isFinite(n) ? n : null;
 }
 
+/** User-facing IBOCA band label (Spanish copy). */
+export function levelLabel(label: string | null | undefined): string {
+  if (!label || label === "--") return "Sin clasificación";
+  return label;
+}
+
 export function latestReadingAt(stations: IbocaStation[]): string | null {
   const dates = stations
     .flatMap((s) => [s.pm25_fecha, s.pm10_fecha, s.pmO3_fecha])
@@ -72,12 +78,15 @@ export function cityIndex(stations: IbocaStation[]): {
   }
   return {
     value: worst.value,
-    label: worst.station.rango_nombre || levelFromValue(worst.value).label,
+    label: levelLabel(
+      worst.station.rango_nombre || levelFromValue(worst.value).label,
+    ),
     color: worst.station.rango_color || levelFromValue(worst.value).hex,
     driver: worst.station,
   };
 }
 
+/** Fallback IBOCA band from numeric index (Spanish copy for UI). */
 export function levelFromValue(value: number): { label: string; hex: string } {
   if (value <= 50) return { label: "Bajo", hex: "00E400" };
   if (value <= 100) return { label: "Moderado", hex: "FFFF00" };

@@ -41,7 +41,7 @@ export default async function Home() {
   const stations = result.ok ? result.stations : [];
   const city = cityIndex(stations);
   const updated = formatUpdated(latestReadingAt(stations));
-  const aqiColor = `#${city.color || "7eb6d9"}`;
+  const aqiColor = city.color ? `#${city.color}` : "var(--sky-top)";
 
   return (
     <div className="flex min-h-full flex-col">
@@ -65,7 +65,7 @@ export default async function Home() {
           </a>
         </nav>
 
-        <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pb-20 pt-8 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:gap-12 md:px-8 md:pb-24 md:pt-10">
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-6 px-5 pb-16 pt-6 md:grid-cols-[minmax(0,1fr)_minmax(280px,1fr)] md:gap-8 md:px-8 md:pb-20 md:pt-8">
           <div>
             <p className="animate-rise font-display text-sm tracking-[0.22em] text-[var(--ink-soft)] uppercase">
               Bogotá

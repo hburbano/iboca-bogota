@@ -1,5 +1,10 @@
 import localities from "@/data/bogota-localities.json";
-import { asNumber, paintColor, type IbocaStation } from "@/lib/iboca";
+import {
+  asNumber,
+  IBOCA_BANDS,
+  paintColor,
+  type IbocaStation,
+} from "@/lib/iboca";
 
 type LonLat = [number, number];
 
@@ -7,6 +12,7 @@ export type MapTile = {
   id: string;
   name: string;
   path: string;
+  extrusion: string;
   fill: string;
   shade: string;
   stroke: string;
@@ -32,7 +38,9 @@ export const MAP_WIDTH = 240;
 export const MAP_HEIGHT = Math.round(
   MAP_WIDTH * ((NORTH - SOUTH) / (EAST - WEST)),
 );
-const CUBE = { x: 5, y: 6 };
+const CUBE = { x: 8, y: 10 };
+const DOT_CLIP = 8;
+const VIEWBOX_PAD = 14;
 
 function project(lon: number, lat: number): LonLat {
   return [
@@ -110,23 +118,67 @@ function mix(hex: string, amount: number, into: string): string {
   return `color-mix(in srgb, #${hex} ${amount}%, ${into})`;
 }
 
-function tilePaint(hex: string | null): {
-  fill: string;
-  shade: string;
-  stroke: string;
-} {
-  if (!hex) {
-    return {
-      fill: "color-mix(in srgb, var(--mist) 70%, white)",
-      shade: "color-mix(in srgb, var(--ridge) 28%, var(--sky-horizon))",
-      stroke: "color-mix(in srgb, var(--ink) 22%, transparent)",
-    };
+type TilePaint = { fill: string; shade: string; stroke: string };
+
+const MISSING_PAINT: TilePaint = {
+  fill: "color-mix(in srgb, var(--mist) 55%, var(--sky-horizon))",
+  shade: "color-mix(in srgb, var(--ridge) 45%, var(--sky-mid))",
+  stroke: "color-mix(in srgb, var(--ink) 18%, transparent)",
+};
+
+/** Official IBOCA hex is neon; restain it with the page tokens so cubes belong in the sky. */
+const TILE_PAINT: Record<string, TilePaint> = {
+  [IBOCA_BANDS.bajo.hex]: {
+    fill: "color-mix(in srgb, var(--accent) 55%, var(--mist))",
+    shade: "color-mix(in srgb, var(--ridge) 82%, var(--accent))",
+    stroke: "color-mix(in srgb, var(--ink) 35%, var(--accent))",
+  },
+  [IBOCA_BANDS.moderado.hex]: {
+    fill: "color-mix(in srgb, #e2c04a 82%, var(--sky-horizon))",
+    shade: "color-mix(in srgb, var(--ridge) 70%, #b8912c)",
+    stroke: "color-mix(in srgb, var(--ink) 30%, #b8912c)",
+  },
+  [IBOCA_BANDS.regular.hex]: {
+    fill: "color-mix(in srgb, #e07a2a 78%, var(--sky-horizon))",
+    shade: "color-mix(in srgb, var(--ridge) 68%, #c45e12)",
+    stroke: "color-mix(in srgb, var(--ink) 30%, #c45e12)",
+  },
+  [IBOCA_BANDS.alto.hex]: {
+    fill: "color-mix(in srgb, #c43b32 72%, var(--sky-horizon))",
+    shade: "color-mix(in srgb, var(--ridge) 70%, #8f2a24)",
+    stroke: "color-mix(in srgb, var(--ink) 32%, #8f2a24)",
+  },
+  [IBOCA_BANDS.peligroso.hex]: {
+    fill: mix(IBOCA_BANDS.peligroso.hex, 68, "var(--mist)"),
+    shade: "color-mix(in srgb, var(--ridge) 75%, #5c2a62)",
+    stroke: "color-mix(in srgb, var(--ink) 32%, #5c2a62)",
+  },
+};
+
+function tilePaint(hex: string | null): TilePaint {
+  if (!hex) return MISSING_PAINT;
+  return (
+    TILE_PAINT[hex] ?? {
+      fill: mix(hex, 70, "var(--sky-horizon)"),
+      shade: mix(hex, 42, "var(--ridge)"),
+      stroke: mix(hex, 30, "var(--ink)"),
+    }
+  );
+}
+
+/** Visible cube sides: quads along edges that face the offset. */
+function extrusionPath(ring: LonLat[], ox: number, oy: number): string {
+  const pts = closeRing(ring);
+  const fmt = (v: number) => v.toFixed(2);
+  let d = "";
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x1, y1] = pts[i];
+    const [x2, y2] = pts[i + 1];
+    const cross = (x2 - x1) * oy - (y2 - y1) * ox;
+    if (cross <= 0) continue;
+    d += `M ${fmt(x1)} ${fmt(y1)} L ${fmt(x2)} ${fmt(y2)} L ${fmt(x2 + ox)} ${fmt(y2 + oy)} L ${fmt(x1 + ox)} ${fmt(y1 + oy)} Z `;
   }
-  return {
-    fill: mix(hex, 62, "#f3ebe0"),
-    shade: mix(hex, 38, "#2f4a3f"),
-    stroke: mix(hex, 28, "#14201c"),
-  };
+  return d;
 }
 
 function readingFor(station: IbocaStation): {
@@ -183,6 +235,7 @@ export function buildBogotaMap(stations: IbocaStation[]): {
       id: feature.c,
       name: feature.n,
       path: cubicBezierPath(projected),
+      extrusion: extrusionPath(projected, CUBE.x, CUBE.y),
       fill: paint.fill,
       shade: paint.shade,
       stroke: paint.stroke,
@@ -198,7 +251,8 @@ export function buildBogotaMap(stations: IbocaStation[]): {
     const pt = stationPoint(station);
     if (!pt) return [];
     const [x, y] = project(pt[0], pt[1]);
-    if (x < -8 || y < -8 || x > MAP_WIDTH + 8 || y > MAP_HEIGHT + 8) return [];
+    if (x < -DOT_CLIP || y < -DOT_CLIP || x > MAP_WIDTH + DOT_CLIP || y > MAP_HEIGHT + DOT_CLIP)
+      return [];
     const reading = readingFor(station);
     return [
       {
@@ -206,14 +260,13 @@ export function buildBogotaMap(stations: IbocaStation[]): {
         name: station.nombre,
         x,
         y,
-        color: reading.color ? `#${reading.color}` : "#6b7c74",
+        color: reading.color ? `#${reading.color}` : "var(--ink-muted)",
         value: reading.value,
       },
     ];
   });
 
-  const pad = 10;
-  const viewBox = `${-pad} ${-pad} ${MAP_WIDTH + CUBE.x + pad * 2} ${MAP_HEIGHT + CUBE.y + pad * 2}`;
+  const viewBox = `${-VIEWBOX_PAD} ${-VIEWBOX_PAD} ${MAP_WIDTH + CUBE.x + VIEWBOX_PAD * 2} ${MAP_HEIGHT + CUBE.y + VIEWBOX_PAD * 2}`;
   return { tiles, dots, viewBox };
 }
 

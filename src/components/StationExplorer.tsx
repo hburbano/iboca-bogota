@@ -12,7 +12,12 @@ import {
   SelectValue,
   Popover,
 } from "react-aria-components";
-import { asNumber, levelLabel, type IbocaStation } from "@/lib/iboca";
+import {
+  asNumber,
+  FALLBACK_HEX,
+  levelLabel,
+  type IbocaStation,
+} from "@/lib/iboca";
 
 type Pollutant = "iboca" | "pm25" | "pm10" | "o3";
 
@@ -147,7 +152,7 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
                   <div className="flex items-center gap-2">
                     <span
                       className="inline-block size-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: `#${r.color || "94A3B8"}` }}
+                      style={{ backgroundColor: `#${r.color || FALLBACK_HEX}` }}
                       aria-hidden
                     />
                     <p className="truncate font-medium text-[var(--ink)]">
@@ -171,7 +176,7 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
           <aside className="station-panel relative overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-white/75 p-6 backdrop-blur-md md:p-8">
             <div
               className="pointer-events-none absolute -top-16 -right-10 size-44 rounded-full opacity-40 blur-3xl"
-              style={{ backgroundColor: `#${activeReading.color || "94A3B8"}` }}
+              style={{ backgroundColor: `#${activeReading.color || FALLBACK_HEX}` }}
               aria-hidden
             />
             <p className="text-xs tracking-[0.2em] text-[var(--ink-muted)] uppercase">

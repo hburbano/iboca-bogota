@@ -9,10 +9,10 @@ import {
 export const revalidate = 300;
 
 function formatUpdated(isoLike: string | null) {
-  if (!isoLike) return "No recent update";
+  if (!isoLike) return "Sin actualización reciente";
   const date = new Date(isoLike.replace(" ", "T") + "-05:00");
   if (Number.isNaN(date.getTime())) return isoLike;
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("es-CO", {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "America/Bogota",
@@ -28,7 +28,8 @@ async function loadStations(): Promise<
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Could not load IBOCA",
+      message:
+        error instanceof Error ? error.message : "No se pudo cargar IBOCA",
     };
   }
 }
@@ -55,10 +56,10 @@ export default async function Home() {
             IBOCA
           </p>
           <a
-            href="#stations"
+            href="#estaciones"
             className="rounded-full border border-[var(--line)] bg-white/55 px-4 py-2 text-sm text-[var(--ink)] outline-none backdrop-blur transition hover:bg-white/80 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            View stations
+            Ver estaciones
           </a>
         </nav>
 
@@ -70,13 +71,13 @@ export default async function Home() {
             IBOCA
           </h1>
           <p className="animate-rise mt-5 max-w-lg text-lg text-[var(--ink-soft)] md:text-xl">
-            The city’s air, right now — index and health risk by RMCAB station.
+            El aire de la ciudad, ahora — índice y riesgo por estación RMCAB.
           </p>
 
           <div className="animate-rise mt-10 flex flex-wrap items-end gap-6">
             <div>
               <p className="text-xs tracking-[0.18em] text-[var(--ink-muted)] uppercase">
-                City index
+                Índice ciudad
               </p>
               <p className="font-display text-7xl leading-none tabular-nums text-[var(--ink)] md:text-8xl">
                 {city.value ?? "—"}
@@ -93,8 +94,8 @@ export default async function Home() {
               </p>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">
                 {city.driver
-                  ? `Highest reading: ${city.driver.nombre}`
-                  : "No active stations"}
+                  ? `Mayor lectura: ${city.driver.nombre}`
+                  : "Sin estaciones activas"}
               </p>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">{updated}</p>
             </div>
@@ -102,10 +103,10 @@ export default async function Home() {
 
           <div className="animate-rise mt-10 flex flex-wrap gap-3">
             <a
-              href="#stations"
+              href="#estaciones"
               className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-medium text-[#f4efe6] outline-none transition hover:bg-[var(--ridge)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              Explore the network
+              Explorar red
             </a>
             <a
               href="http://iboca.ambientebogota.gov.co/mapa/"
@@ -113,7 +114,7 @@ export default async function Home() {
               rel="noreferrer"
               className="rounded-full border border-[var(--line)] bg-white/50 px-5 py-3 text-sm text-[var(--ink)] outline-none backdrop-blur transition hover:bg-white/80 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              Official map
+              Mapa oficial
             </a>
           </div>
         </div>
@@ -122,7 +123,7 @@ export default async function Home() {
       </header>
 
       <main
-        id="stations"
+        id="estaciones"
         className="relative z-10 -mt-8 grow rounded-t-[2rem] bg-[color-mix(in_srgb,var(--sky-horizon)_88%,white)]"
       >
         {result.ok ? (
@@ -130,7 +131,7 @@ export default async function Home() {
         ) : (
           <div className="mx-auto max-w-6xl px-5 py-20 md:px-8">
             <h2 className="font-display text-3xl text-[var(--ink)]">
-              Could not load IBOCA
+              No se pudo cargar IBOCA
             </h2>
             <p className="mt-3 text-[var(--ink-soft)]">{result.message}</p>
           </div>
@@ -140,10 +141,10 @@ export default async function Home() {
       <footer className="border-t border-[var(--line)] px-5 py-8 text-sm text-[var(--ink-muted)] md:px-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <p>
-            Source: Secretaría Distrital de Ambiente — IBOCA / RMCAB. Unofficial
-            mirror of publicly available readings.
+            Fuente: Secretaría Distrital de Ambiente — IBOCA / RMCAB. Espejo no
+            oficial de lecturas públicas.
           </p>
-          <p>Refreshes every 5 minutes</p>
+          <p>Actualización cada 5 minutos</p>
         </div>
       </footer>
     </div>

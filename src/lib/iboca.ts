@@ -37,15 +37,6 @@ type IbocaApiResponse = {
 const IBOCA_STATIONS_URL =
   "http://iboca.ambientebogota.gov.co/iboca/service/allstations/true";
 
-const LEVEL_LABELS: Record<string, string> = {
-  Bajo: "Low",
-  Moderado: "Moderate",
-  Regular: "Unhealthy for sensitive groups",
-  Alto: "High",
-  Peligroso: "Hazardous",
-  Favorable: "Favorable",
-};
-
 export function asNumber(value: number | string | null | undefined): number | null {
   if (value === null || value === undefined || value === "--" || value === "") {
     return null;
@@ -54,9 +45,10 @@ export function asNumber(value: number | string | null | undefined): number | nu
   return Number.isFinite(n) ? n : null;
 }
 
-export function translateLevel(label: string | null | undefined): string {
-  if (!label || label === "--") return "Unclassified";
-  return LEVEL_LABELS[label] ?? label;
+/** User-facing IBOCA band label (Spanish copy). */
+export function levelLabel(label: string | null | undefined): string {
+  if (!label || label === "--") return "Sin clasificación";
+  return label;
 }
 
 export function latestReadingAt(stations: IbocaStation[]): string | null {
@@ -82,11 +74,11 @@ export function cityIndex(stations: IbocaStation[]): {
     }
   }
   if (!worst) {
-    return { value: null, label: "No data", color: "94A3B8", driver: null };
+    return { value: null, label: "Sin dato", color: "94A3B8", driver: null };
   }
   return {
     value: worst.value,
-    label: translateLevel(
+    label: levelLabel(
       worst.station.rango_nombre || levelFromValue(worst.value).label,
     ),
     color: worst.station.rango_color || levelFromValue(worst.value).hex,
@@ -94,12 +86,13 @@ export function cityIndex(stations: IbocaStation[]): {
   };
 }
 
+/** Fallback IBOCA band from numeric index (Spanish copy for UI). */
 export function levelFromValue(value: number): { label: string; hex: string } {
-  if (value <= 50) return { label: "Low", hex: "00E400" };
-  if (value <= 100) return { label: "Moderate", hex: "FFFF00" };
-  if (value <= 150) return { label: "Unhealthy for sensitive groups", hex: "FF7E00" };
-  if (value <= 200) return { label: "High", hex: "FF0000" };
-  return { label: "Hazardous", hex: "8F3F97" };
+  if (value <= 50) return { label: "Bajo", hex: "00E400" };
+  if (value <= 100) return { label: "Moderado", hex: "FFFF00" };
+  if (value <= 150) return { label: "Regular", hex: "FF7E00" };
+  if (value <= 200) return { label: "Alto", hex: "FF0000" };
+  return { label: "Peligroso", hex: "8F3F97" };
 }
 
 async function loadStationsUncached(): Promise<IbocaStation[]> {

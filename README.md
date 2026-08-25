@@ -2,6 +2,8 @@
 
 Live view of Bogotá’s **Air Quality and Health Risk Index (IBOCA)** built with Next.js, React Aria Components, and Tailwind CSS.
 
+User-facing UI copy is in Spanish; source code, comments, and this README are in English.
+
 ## Data
 
 Reads the public IBOCA map backend:
@@ -19,12 +21,12 @@ pnpm dev
 
 ## Scripts
 
-| Command       | Description              |
-| ------------- | ------------------------ |
-| `pnpm dev`    | Start the Next.js app    |
-| `pnpm build`  | Production build         |
-| `pnpm start`  | Serve the production app |
-| `pnpm lint`   | Run ESLint               |
+| Command      | Description              |
+| ------------ | ------------------------ |
+| `pnpm dev`   | Start the Next.js app    |
+| `pnpm build` | Production build         |
+| `pnpm start` | Serve the production app |
+| `pnpm lint`  | Run ESLint               |
 
 ## Stack
 

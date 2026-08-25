@@ -14,7 +14,12 @@ Fetching runs on the server (or via `/api/stations`) to avoid CORS and revalidat
 
 ## Development
 
+Node is pinned in `.tool-versions` (asdf). pnpm comes from Corepack via the `packageManager` field in `package.json`.
+
 ```bash
+asdf install
+corepack enable
+asdf reshim nodejs
 pnpm install
 pnpm dev
 ```
@@ -33,5 +38,5 @@ pnpm dev
 - Next.js App Router
 - React Aria Components
 - Tailwind CSS v4
-- pnpm
+- pnpm (Corepack)
 - Typography: Fraunces + Manrope

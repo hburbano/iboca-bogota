@@ -1,0 +1,4 @@
+# 5 days (pnpm measures this in minutes)
+minimumReleaseAge: 7200
+allowBuilds:
+  unrs-resolver: true

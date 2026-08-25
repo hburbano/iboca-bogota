@@ -1,6 +1,6 @@
 # IBOCA · Bogotá Air Quality
 
-Live view of Bogotá’s **Air Quality and Health Risk Index (IBOCA)** built with Next.js, React Aria Components, and Tailwind CSS.
+Live view of Bogotá’s **Air Quality and Health Risk Index (IBOCA)** built with Next.js, React Aria Components, and Tailwind CSS. The homepage is a city snapshot (hero map of localities) plus a station explorer with on-demand 7-day history.
 
 User-facing UI copy is in Spanish; source code, comments, and this README are in English.
 
@@ -8,9 +8,10 @@ User-facing UI copy is in Spanish; source code, comments, and this README are in
 
 Reads the public IBOCA map backend:
 
-`http://iboca.ambientebogota.gov.co/iboca/service/allstations/true`
+- Stations: `http://iboca.ambientebogota.gov.co/iboca/service/allstations/true` (server, `/api/stations`)
+- History: `http://iboca.ambientebogota.gov.co/iboca/service/stationHistoricalHours/{id}` (on demand, `/api/stations/[id]/history`)
 
-Fetching runs on the server (or via `/api/stations`) to avoid CORS and revalidates every 5 minutes.
+Fetching avoids CORS and revalidates every 5 minutes. Band cutoffs and official hex live in `IBOCA_BANDS` (`src/lib/iboca.ts`).
 
 ## Development
 

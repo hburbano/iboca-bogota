@@ -98,7 +98,7 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
           className="w-full max-w-xs"
         >
           <Label className="mb-1 block text-xs tracking-wide text-[var(--ink-muted)] uppercase">
-            Contaminante
+            Indicador
           </Label>
           <Button className="flex w-full items-center justify-between rounded-xl border border-[var(--line)] bg-white/70 px-4 py-3 text-left text-[var(--ink)] shadow-[0_1px_0_rgba(20,32,28,0.04)] outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
             <SelectValue />

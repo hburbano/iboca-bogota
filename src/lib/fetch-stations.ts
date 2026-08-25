@@ -36,6 +36,6 @@ async function loadStationsUncached(): Promise<IbocaStation[]> {
 
 export const fetchIbocaStations = unstable_cache(
   loadStationsUncached,
-  ["iboca-stations-v2"],
+  ["iboca-stations-v3"],
   { revalidate: 300 },
 );

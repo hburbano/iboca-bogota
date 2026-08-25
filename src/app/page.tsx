@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import { BogotaAirMap } from "@/components/BogotaAirMap";
 import { cityIndex, latestReadingAt, type IbocaStation } from "@/lib/iboca";
 import { fetchIbocaStations } from "@/lib/fetch-stations";
 
@@ -45,14 +46,14 @@ export default async function Home() {
   return (
     <div className="flex min-h-full flex-col">
       <header
-        className="hero-sky relative min-h-[100svh] overflow-hidden"
+        className="hero-sky relative overflow-hidden"
         style={{ ["--aqi" as string]: aqiColor }}
       >
-        <div className="animate-drift pointer-events-none absolute inset-x-[-8%] top-[8%] h-40 opacity-50">
-          <div className="mx-auto h-24 w-[70%] rounded-[100%] bg-white/35 blur-3xl" />
+        <div className="animate-drift pointer-events-none absolute inset-x-[-8%] top-[6%] h-28 opacity-40">
+          <div className="mx-auto h-20 w-[55%] rounded-[100%] bg-white/30 blur-3xl" />
         </div>
 
-        <nav className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 pt-6 md:px-8">
+        <nav className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 pt-5 md:px-8">
           <p className="font-display text-xl tracking-tight text-[var(--ink)] md:text-2xl">
             IBOCA
           </p>
@@ -64,63 +65,73 @@ export default async function Home() {
           </a>
         </nav>
 
-        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-5rem)] w-full max-w-6xl flex-col justify-end px-5 pb-28 pt-16 md:px-8 md:pb-36">
-          <p className="animate-rise font-display text-sm tracking-[0.22em] text-[var(--ink-soft)] uppercase">
-            Bogotá
-          </p>
-          <h1 className="animate-rise mt-3 max-w-3xl font-display text-5xl leading-[0.95] tracking-tight text-[var(--ink)] md:text-7xl lg:text-8xl">
-            IBOCA
-          </h1>
-          <p className="animate-rise mt-5 max-w-lg text-lg text-[var(--ink-soft)] md:text-xl">
-            El aire de la ciudad, ahora — índice y riesgo por estación RMCAB.
-          </p>
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pb-20 pt-8 md:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] md:gap-12 md:px-8 md:pb-24 md:pt-10">
+          <div>
+            <p className="animate-rise font-display text-sm tracking-[0.22em] text-[var(--ink-soft)] uppercase">
+              Bogotá
+            </p>
+            <h1 className="animate-rise mt-2 max-w-xl font-display text-5xl leading-[0.95] tracking-tight text-[var(--ink)] md:text-6xl lg:text-7xl">
+              IBOCA
+            </h1>
+            <p className="animate-rise mt-4 max-w-md text-lg text-[var(--ink-soft)] md:text-xl">
+              El aire de la ciudad, ahora — índice y riesgo por estación RMCAB.
+            </p>
 
-          <div className="animate-rise mt-10 flex flex-wrap items-end gap-6">
-            <div>
-              <p className="text-xs tracking-[0.18em] text-[var(--ink-muted)] uppercase">
-                Índice ciudad
-              </p>
-              <p className="font-display text-7xl leading-none tabular-nums text-[var(--ink)] md:text-8xl">
-                {city.value ?? "—"}
-              </p>
+            <div className="animate-rise mt-8 flex flex-wrap items-end gap-6">
+              <div>
+                <p className="text-xs tracking-[0.18em] text-[var(--ink-muted)] uppercase">
+                  Índice ciudad
+                </p>
+                <p className="font-display text-7xl leading-none tabular-nums text-[var(--ink)] md:text-8xl">
+                  {city.value ?? "—"}
+                </p>
+              </div>
+              <div className="pb-2">
+                <p className="flex items-center gap-2 font-medium text-[var(--ink)]">
+                  <span
+                    className="inline-block size-3 rounded-full"
+                    style={{ backgroundColor: aqiColor }}
+                    aria-hidden
+                  />
+                  {city.label}
+                </p>
+                <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                  {city.driver
+                    ? `Mayor lectura: ${city.driver.nombre}`
+                    : "Sin estaciones activas"}
+                </p>
+                <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                  {updated}
+                </p>
+              </div>
             </div>
-            <div className="pb-2">
-              <p className="flex items-center gap-2 font-medium text-[var(--ink)]">
-                <span
-                  className="inline-block size-3 rounded-full"
-                  style={{ backgroundColor: aqiColor }}
-                  aria-hidden
-                />
-                {city.label}
-              </p>
-              <p className="mt-1 text-sm text-[var(--ink-muted)]">
-                {city.driver
-                  ? `Mayor lectura: ${city.driver.nombre}`
-                  : "Sin estaciones activas"}
-              </p>
-              <p className="mt-1 text-sm text-[var(--ink-muted)]">{updated}</p>
+
+            <div className="animate-rise mt-8 flex flex-wrap gap-3">
+              <a
+                href="#estaciones"
+                className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-medium text-[#f4efe6] outline-none transition hover:bg-[var(--ridge)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                Explorar red
+              </a>
+              <a
+                href="http://iboca.ambientebogota.gov.co/mapa/"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-[var(--line)] bg-white/50 px-5 py-3 text-sm text-[var(--ink)] outline-none backdrop-blur transition hover:bg-white/80 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                Mapa oficial
+              </a>
             </div>
           </div>
 
-          <div className="animate-rise mt-10 flex flex-wrap gap-3">
-            <a
-              href="#estaciones"
-              className="rounded-full bg-[var(--ink)] px-5 py-3 text-sm font-medium text-[#f4efe6] outline-none transition hover:bg-[var(--ridge)] focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              Explorar red
-            </a>
-            <a
-              href="http://iboca.ambientebogota.gov.co/mapa/"
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-[var(--line)] bg-white/50 px-5 py-3 text-sm text-[var(--ink)] outline-none backdrop-blur transition hover:bg-white/80 focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              Mapa oficial
-            </a>
-          </div>
+          {result.ok ? (
+            <BogotaAirMap stations={stations} />
+          ) : (
+            <div className="aspect-[3/4] rounded-[1.5rem] border border-[var(--line)] bg-white/30" />
+          )}
         </div>
 
-        <div className="mountain-band pointer-events-none absolute inset-x-0 bottom-0 h-36 md:h-48" />
+        <div className="mountain-band pointer-events-none absolute inset-x-0 bottom-0 h-20 md:h-28" />
       </header>
 
       <main

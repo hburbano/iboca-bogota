@@ -3,6 +3,8 @@ export type IbocaStation = {
   nombre: string;
   abreviatura: string;
   localidad: string;
+  latitud: number | null;
+  longitud: number | null;
   iboca: number | string;
   pm25_iboca: number | string;
   pm10_iboca: number | string;
@@ -40,6 +42,27 @@ function asConc(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function asCoord(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string" || value === "") return null;
+  const n = Number(value.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** IBOCA uses 000000 / empty for missing bands; those are not paint colors. */
+export function paintColor(hex: string | null | undefined): string | null {
+  if (!hex || hex === "--") return null;
+  const clean = hex.replace("#", "").toUpperCase();
+  if (
+    clean === "000000" ||
+    clean === "FFFFFF" ||
+    !/^[0-9A-F]{6}$/.test(clean)
+  ) {
+    return null;
+  }
+  return clean;
+}
+
 /** Keep only fields the UI and city index need. Drops ~4.5MB photos plus GIS metadata. */
 export function slimStation(raw: Record<string, unknown>): IbocaStation {
   return {
@@ -47,6 +70,8 @@ export function slimStation(raw: Record<string, unknown>): IbocaStation {
     nombre: asString(raw.nombre),
     abreviatura: asString(raw.abreviatura),
     localidad: asString(raw.localidad),
+    latitud: asCoord(raw.latitud),
+    longitud: asCoord(raw.longitud),
     iboca: asIndex(raw.iboca),
     pm25_iboca: asIndex(raw.pm25_iboca),
     pm10_iboca: asIndex(raw.pm10_iboca),

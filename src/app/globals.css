@@ -46,8 +46,18 @@ body {
 
 .hero-sky {
   background:
-    radial-gradient(120% 80% at 70% -10%, color-mix(in srgb, var(--aqi) 28%, transparent), transparent 55%),
-    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 42%, var(--sky-horizon) 78%, #efe6d8 100%);
+    radial-gradient(
+      120% 80% at 70% -10%,
+      color-mix(in srgb, var(--aqi) 28%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      var(--sky-top) 0%,
+      var(--sky-mid) 42%,
+      var(--sky-horizon) 78%,
+      #efe6d8 100%
+    );
 }
 
 .mountain-band {
@@ -83,6 +93,13 @@ body {
 
 .animate-drift {
   animation: drift 14s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-drift {
+    animation: none;
+  }
 }
 
 .station-panel {

@@ -1,3 +1,16 @@
+export type Pollutant = "iboca" | "pm25" | "pm10" | "o3";
+
+export type HistoryPoint = {
+  t: string;
+  v: number;
+};
+
+export type StationHistory = {
+  pm25: HistoryPoint[];
+  pm10: HistoryPoint[];
+  o3: HistoryPoint[];
+};
+
 export type IbocaStation = {
   id: number;
   nombre: string;
@@ -81,6 +94,105 @@ export function paintColor(hex: string | null | undefined): string | null {
   return clean;
 }
 
+const EMPTY_HISTORY: StationHistory = { pm25: [], pm10: [], o3: [] };
+
+function isMissingSample(index: number | null): boolean {
+  return index == null || index === 0;
+}
+
+/** Hourly Nowcast points only — drops IBOCA's zero-as-missing samples. */
+export function slimStationHistory(
+  rawRows: Array<Record<string, unknown>>,
+): StationHistory {
+  const history: StationHistory = { pm25: [], pm10: [], o3: [] };
+
+  for (const row of rawRows) {
+    const t = asStringOrNull(row.fecha_inicio);
+    const v = asNumber(row.calc_iboca);
+    if (!t || isMissingSample(v) || v == null) continue;
+
+    const name = asString(row.contaminante_name);
+    const point: HistoryPoint = { t, v };
+    if (name === "PM25") history.pm25.push(point);
+    else if (name === "PM10") history.pm10.push(point);
+    else if (name === "O3") history.o3.push(point);
+  }
+
+  history.pm25.sort(byTime);
+  history.pm10.sort(byTime);
+  history.o3.sort(byTime);
+  return history;
+}
+
+function byTime(a: HistoryPoint, b: HistoryPoint): number {
+  return a.t < b.t ? -1 : a.t > b.t ? 1 : 0;
+}
+
+export function emptyStationHistory(): StationHistory {
+  return EMPTY_HISTORY;
+}
+
+/** IBOCA has no overall series; use the hourly max of available pollutants. */
+export function seriesForPollutant(
+  history: StationHistory,
+  pollutant: Pollutant,
+): HistoryPoint[] {
+  if (pollutant === "pm25") return history.pm25;
+  if (pollutant === "pm10") return history.pm10;
+  if (pollutant === "o3") return history.o3;
+
+  const hourlyMax = new Map<string, number>();
+  for (const series of [history.pm25, history.pm10, history.o3]) {
+    for (const point of series) {
+      const prev = hourlyMax.get(point.t);
+      if (prev == null || point.v > prev) hourlyMax.set(point.t, point.v);
+    }
+  }
+  return [...hourlyMax.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([t, v]) => ({ t, v }));
+}
+
+export function stationReadingAt(
+  station: IbocaStation,
+  pollutant: Pollutant,
+): string | null {
+  if (pollutant === "pm25") return station.pm25_fecha;
+  if (pollutant === "pm10") return station.pm10_fecha;
+  if (pollutant === "o3") return station.pmO3_fecha;
+  return latestReadingAt([station]);
+}
+
+export function parseStationId(raw: string): number | null {
+  if (!/^\d{1,5}$/.test(raw)) return null;
+  const n = Number(raw);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+/** IBOCA timestamps are Bogotá local time without an offset. */
+export function formatBogotaDate(isoLike: string | null): string | null {
+  if (!isoLike) return null;
+  const date = new Date(isoLike.replace(" ", "T") + "-05:00");
+  if (Number.isNaN(date.getTime())) return isoLike;
+  return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "America/Bogota",
+  }).format(date);
+}
+
+export function formatBogotaDay(isoLike: string | null): string | null {
+  if (!isoLike) return null;
+  const date = new Date(isoLike.replace(" ", "T") + "-05:00");
+  if (Number.isNaN(date.getTime())) return isoLike;
+  return new Intl.DateTimeFormat("es-CO", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "America/Bogota",
+  }).format(date);
+}
+
 /** Keep only fields the UI and city index need. Drops ~4.5MB photos plus GIS metadata. */
 export function slimStation(raw: Record<string, unknown>): IbocaStation {
   return {
@@ -111,9 +223,7 @@ export function slimStation(raw: Record<string, unknown>): IbocaStation {
   };
 }
 
-export function asNumber(
-  value: number | string | null | undefined,
-): number | null {
+export function asNumber(value: unknown): number | null {
   if (
     value === null ||
     value === undefined ||

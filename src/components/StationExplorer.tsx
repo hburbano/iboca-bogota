@@ -13,13 +13,21 @@ import {
   Popover,
 } from "react-aria-components";
 import {
+  StationHistoryChart,
+  StationHistoryMessage,
+  StationHistorySkeleton,
+} from "@/components/StationHistoryChart";
+import {
   asNumber,
   FALLBACK_HEX,
+  formatBogotaDate,
   levelLabel,
+  seriesForPollutant,
+  stationReadingAt,
   type IbocaStation,
+  type Pollutant,
 } from "@/lib/iboca";
-
-type Pollutant = "iboca" | "pm25" | "pm10" | "o3";
+import { useStationHistory } from "@/lib/use-station-history";
 
 const POLLUTANTS: { id: Pollutant; label: string }[] = [
   { id: "iboca", label: "IBOCA" },
@@ -80,7 +88,8 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
   }, [stations, pollutant]);
 
   const active = sorted.find((s) => String(s.id) === selected) ?? sorted[0];
-  const activeReading = active ? reading(active, pollutant) : null;
+  const pollutantLabel =
+    POLLUTANTS.find((p) => p.id === pollutant)?.label ?? "IBOCA";
 
   return (
     <section className="mx-auto w-full max-w-6xl px-5 pb-24 pt-10 md:px-8">
@@ -172,72 +181,124 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
           }}
         </GridList>
 
-        {active && activeReading && (
-          <aside className="station-panel relative overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-white/75 p-6 backdrop-blur-md md:p-8">
-            <div
-              className="pointer-events-none absolute -top-16 -right-10 size-44 rounded-full opacity-40 blur-3xl"
-              style={{ backgroundColor: `#${activeReading.color || FALLBACK_HEX}` }}
-              aria-hidden
-            />
-            <p className="text-xs tracking-[0.2em] text-[var(--ink-muted)] uppercase">
-              {active.abreviatura}
-            </p>
-            <h3 className="mt-2 font-display text-3xl text-[var(--ink)]">
-              {active.nombre}
-            </h3>
-            <p className="mt-1 text-[var(--ink-soft)]">
-              {active.localidad || "Bogotá D.C."}
-            </p>
-
-            <div className="mt-8 flex items-end gap-4">
-              <p
-                className="font-display text-7xl leading-none tabular-nums tracking-tight text-[var(--ink)] animate-rise"
-                key={`${active.id}-${pollutant}`}
-              >
-                {activeReading.index ?? "—"}
-              </p>
-              <div className="pb-2">
-                <p className="text-sm text-[var(--ink-muted)]">
-                  {POLLUTANTS.find((p) => p.id === pollutant)?.label}
-                </p>
-                <p className="font-medium text-[var(--ink)]">
-                  {activeReading.label || "Sin clasificación"}
-                </p>
-              </div>
-            </div>
-
-            {activeReading.conc != null && activeReading.unit && (
-              <p className="mt-6 text-[var(--ink-soft)]">
-                Concentración{" "}
-                <span className="font-medium text-[var(--ink)] tabular-nums">
-                  {activeReading.conc} {activeReading.unit}
-                </span>
-              </p>
-            )}
-
-            <dl className="mt-8 grid grid-cols-3 gap-3 border-t border-[var(--line)] pt-6 text-sm">
-              <div>
-                <dt className="text-[var(--ink-muted)]">PM2.5</dt>
-                <dd className="mt-1 font-medium tabular-nums text-[var(--ink)]">
-                  {asNumber(active.pm25_iboca) ?? "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--ink-muted)]">PM10</dt>
-                <dd className="mt-1 font-medium tabular-nums text-[var(--ink)]">
-                  {asNumber(active.pm10_iboca) ?? "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[var(--ink-muted)]">O₃</dt>
-                <dd className="mt-1 font-medium tabular-nums text-[var(--ink)]">
-                  {asNumber(active.O3_iboca) ?? "—"}
-                </dd>
-              </div>
-            </dl>
-          </aside>
+        {active && (
+          <StationDetails
+            key={active.id}
+            station={active}
+            pollutant={pollutant}
+            pollutantLabel={pollutantLabel}
+          />
         )}
       </div>
     </section>
+  );
+}
+
+function StationDetails({
+  station,
+  pollutant,
+  pollutantLabel,
+}: {
+  station: IbocaStation;
+  pollutant: Pollutant;
+  pollutantLabel: string;
+}) {
+  const activeReading = reading(station, pollutant);
+  const history = useStationHistory(station.id);
+  const series = history.data
+    ? seriesForPollutant(history.data, pollutant)
+    : [];
+  const updated = formatBogotaDate(stationReadingAt(station, pollutant));
+
+  return (
+    <aside
+      className="station-panel relative overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-white/75 p-6 backdrop-blur-md lg:sticky lg:top-6 lg:self-start md:p-8"
+      aria-busy={history.status === "loading" || history.refreshing}
+    >
+      <div
+        className="pointer-events-none absolute -top-16 -right-10 size-44 rounded-full opacity-40 blur-3xl"
+        style={{ backgroundColor: `#${activeReading.color || FALLBACK_HEX}` }}
+        aria-hidden
+      />
+      <p className="text-xs tracking-[0.2em] text-[var(--ink-muted)] uppercase">
+        {station.abreviatura}
+      </p>
+      <h3 className="mt-2 font-display text-3xl text-[var(--ink)]">
+        {station.nombre}
+      </h3>
+      <p className="mt-1 text-[var(--ink-soft)]">
+        {station.localidad || "Bogotá D.C."}
+      </p>
+
+      <div className="mt-8 flex items-end gap-4">
+        <p
+          className="font-display text-7xl leading-none tabular-nums tracking-tight text-[var(--ink)] animate-rise"
+          key={pollutant}
+        >
+          {activeReading.index ?? "—"}
+        </p>
+        <div className="pb-2">
+          <p className="text-sm text-[var(--ink-muted)]">{pollutantLabel}</p>
+          <p className="font-medium text-[var(--ink)]">
+            {activeReading.label || "Sin clasificación"}
+          </p>
+        </div>
+      </div>
+
+      {activeReading.conc != null && activeReading.unit && (
+        <p className="mt-6 text-[var(--ink-soft)]">
+          Concentración{" "}
+          <span className="font-medium text-[var(--ink)] tabular-nums">
+            {activeReading.conc} {activeReading.unit}
+          </span>
+        </p>
+      )}
+
+      {updated && (
+        <p className="mt-3 text-sm text-[var(--ink-muted)]">
+          Actualizado {updated}
+        </p>
+      )}
+
+      {history.status === "loading" && <StationHistorySkeleton />}
+      {history.status === "error" && !history.data && (
+        <StationHistoryMessage>
+          No se pudo cargar el histórico
+        </StationHistoryMessage>
+      )}
+      {history.data && series.length >= 2 && (
+        <StationHistoryChart
+          points={series}
+          color={activeReading.color}
+          label={pollutantLabel}
+        />
+      )}
+      {history.status === "ok" && series.length < 2 && (
+        <StationHistoryMessage>
+          Sin histórico para este indicador
+        </StationHistoryMessage>
+      )}
+
+      <dl className="mt-8 grid grid-cols-3 gap-3 border-t border-[var(--line)] pt-6 text-sm">
+        <div>
+          <dt className="text-[var(--ink-muted)]">PM2.5</dt>
+          <dd className="mt-1 font-medium tabular-nums text-[var(--ink)]">
+            {asNumber(station.pm25_iboca) ?? "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-[var(--ink-muted)]">PM10</dt>
+          <dd className="mt-1 font-medium tabular-nums text-[var(--ink)]">
+            {asNumber(station.pm10_iboca) ?? "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-[var(--ink-muted)]">O₃</dt>
+          <dd className="mt-1 font-medium tabular-nums text-[var(--ink)]">
+            {asNumber(station.O3_iboca) ?? "—"}
+          </dd>
+        </div>
+      </dl>
+    </aside>
   );
 }

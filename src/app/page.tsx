@@ -1,6 +1,11 @@
 import dynamic from "next/dynamic";
 import { BogotaAirMap } from "@/components/BogotaAirMap";
-import { cityIndex, latestReadingAt, type IbocaStation } from "@/lib/iboca";
+import {
+  cityIndex,
+  formatBogotaDate,
+  latestReadingAt,
+  type IbocaStation,
+} from "@/lib/iboca";
 import { fetchIbocaStations } from "@/lib/fetch-stations";
 
 export const revalidate = 300;
@@ -9,17 +14,6 @@ export const maxDuration = 60;
 const StationExplorer = dynamic(() =>
   import("@/components/StationExplorer").then((mod) => mod.StationExplorer),
 );
-
-function formatUpdated(isoLike: string | null) {
-  if (!isoLike) return "Sin actualización reciente";
-  const date = new Date(isoLike.replace(" ", "T") + "-05:00");
-  if (Number.isNaN(date.getTime())) return isoLike;
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "America/Bogota",
-  }).format(date);
-}
 
 async function loadStations(): Promise<
   { ok: true; stations: IbocaStation[] } | { ok: false; message: string }
@@ -40,7 +34,9 @@ export default async function Home() {
   const result = await loadStations();
   const stations = result.ok ? result.stations : [];
   const city = cityIndex(stations);
-  const updated = formatUpdated(latestReadingAt(stations));
+  const updated =
+    formatBogotaDate(latestReadingAt(stations)) ??
+    "Sin actualización reciente";
   const aqiColor = city.color ? `#${city.color}` : "var(--sky-top)";
 
   return (

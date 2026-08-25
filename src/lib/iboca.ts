@@ -25,6 +25,28 @@ export type IbocaStation = {
   rango_color_o3: string;
 };
 
+/** Official IBOCA band table — hex and cutoffs used by the API and this app. */
+export const IBOCA_BANDS = {
+  bajo: { max: 50, label: "Bajo", hex: "00E400" },
+  moderado: { max: 100, label: "Moderado", hex: "FFFF00" },
+  regular: { max: 150, label: "Regular", hex: "FF7E00" },
+  alto: { max: 200, label: "Alto", hex: "FF0000" },
+  peligroso: { max: Number.POSITIVE_INFINITY, label: "Peligroso", hex: "8F3F97" },
+} as const;
+
+const IBOCA_BAND_ORDER = [
+  IBOCA_BANDS.bajo,
+  IBOCA_BANDS.moderado,
+  IBOCA_BANDS.regular,
+  IBOCA_BANDS.alto,
+  IBOCA_BANDS.peligroso,
+] as const;
+
+export const MISSING_READING = "--";
+export const MISSING_RANGE_LABEL = "Sin data";
+export const FALLBACK_HEX = "94A3B8";
+const UNPAINTABLE_HEX = new Set(["000000", "FFFFFF"]);
+
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }
@@ -35,7 +57,7 @@ function asStringOrNull(value: unknown): string | null {
 
 function asIndex(value: unknown): number | string {
   if (typeof value === "number" || typeof value === "string") return value;
-  return "--";
+  return MISSING_READING;
 }
 
 function asConc(value: unknown): number {
@@ -51,13 +73,9 @@ function asCoord(value: unknown): number | null {
 
 /** IBOCA uses 000000 / empty for missing bands; those are not paint colors. */
 export function paintColor(hex: string | null | undefined): string | null {
-  if (!hex || hex === "--") return null;
+  if (!hex || hex === MISSING_READING) return null;
   const clean = hex.replace("#", "").toUpperCase();
-  if (
-    clean === "000000" ||
-    clean === "FFFFFF" ||
-    !/^[0-9A-F]{6}$/.test(clean)
-  ) {
+  if (UNPAINTABLE_HEX.has(clean) || !/^[0-9A-F]{6}$/.test(clean)) {
     return null;
   }
   return clean;
@@ -83,20 +101,25 @@ export function slimStation(raw: Record<string, unknown>): IbocaStation {
     pm10_fecha: asStringOrNull(raw.pm10_fecha),
     pmO3_fecha: asStringOrNull(raw.pmO3_fecha),
     rango_nombre: asString(raw.rango_nombre),
-    rango_color: asString(raw.rango_color, "94A3B8"),
+    rango_color: asString(raw.rango_color, FALLBACK_HEX),
     rango_nombre_pm25: asString(raw.rango_nombre_pm25),
     rango_nombre_pm10: asString(raw.rango_nombre_pm10),
     rango_nombre_o3: asString(raw.rango_nombre_o3),
-    rango_color_pm25: asString(raw.rango_color_pm25, "94A3B8"),
-    rango_color_pm10: asString(raw.rango_color_pm10, "94A3B8"),
-    rango_color_o3: asString(raw.rango_color_o3, "94A3B8"),
+    rango_color_pm25: asString(raw.rango_color_pm25, FALLBACK_HEX),
+    rango_color_pm10: asString(raw.rango_color_pm10, FALLBACK_HEX),
+    rango_color_o3: asString(raw.rango_color_o3, FALLBACK_HEX),
   };
 }
 
 export function asNumber(
   value: number | string | null | undefined,
 ): number | null {
-  if (value === null || value === undefined || value === "--" || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    value === MISSING_READING ||
+    value === ""
+  ) {
     return null;
   }
   const n =
@@ -106,7 +129,7 @@ export function asNumber(
 
 /** User-facing IBOCA band label (Spanish copy). */
 export function levelLabel(label: string | null | undefined): string {
-  if (!label || label === "--" || label === "Sin data")
+  if (!label || label === MISSING_READING || label === MISSING_RANGE_LABEL)
     return "Sin clasificación";
   return label;
 }
@@ -134,7 +157,7 @@ export function cityIndex(stations: IbocaStation[]): {
     }
   }
   if (!worst) {
-    return { value: null, label: "Sin dato", color: "94A3B8", driver: null };
+    return { value: null, label: "Sin dato", color: FALLBACK_HEX, driver: null };
   }
   return {
     value: worst.value,
@@ -148,9 +171,8 @@ export function cityIndex(stations: IbocaStation[]): {
 
 /** Fallback IBOCA band from numeric index (Spanish copy for UI). */
 export function levelFromValue(value: number): { label: string; hex: string } {
-  if (value <= 50) return { label: "Bajo", hex: "00E400" };
-  if (value <= 100) return { label: "Moderado", hex: "FFFF00" };
-  if (value <= 150) return { label: "Regular", hex: "FF7E00" };
-  if (value <= 200) return { label: "Alto", hex: "FF0000" };
-  return { label: "Peligroso", hex: "8F3F97" };
+  const band =
+    IBOCA_BAND_ORDER.find((entry) => value <= entry.max) ??
+    IBOCA_BANDS.peligroso;
+  return { label: band.label, hex: band.hex };
 }

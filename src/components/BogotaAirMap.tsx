@@ -1,16 +1,21 @@
-import { buildBogotaMap, CUBE_OFFSET } from "@/lib/bogota-map";
-import type { IbocaStation } from "@/lib/iboca";
+import { buildBogotaMap } from "@/lib/bogota-map";
+import { IBOCA_BANDS, type IbocaStation } from "@/lib/iboca";
+
+const DOT_RADIUS = {
+  rest: 2.6,
+  aboveBajo: 3.4,
+} as const;
 
 export function BogotaAirMap({ stations }: { stations: IbocaStation[] }) {
   const { tiles, dots, viewBox } = buildBogotaMap(stations);
 
   return (
-    <figure className="animate-rise mx-auto w-full max-w-[280px] md:max-w-none">
+    <figure className="animate-rise mx-auto w-full max-w-[320px] justify-self-center md:max-w-none md:justify-self-end">
       <svg
         viewBox={viewBox}
         role="img"
         aria-labelledby="bogota-map-title bogota-map-desc"
-        className="h-auto w-full max-h-[min(52vh,420px)] overflow-visible"
+        className="h-auto w-full max-h-[min(46vh,440px)] overflow-visible"
       >
         <title id="bogota-map-title">Mapa de Bogotá por localidad</title>
         <desc id="bogota-map-desc">
@@ -19,12 +24,7 @@ export function BogotaAirMap({ stations }: { stations: IbocaStation[] }) {
         </desc>
         <g aria-hidden="true">
           {tiles.map((tile) => (
-            <path
-              key={`${tile.id}-shade`}
-              d={tile.path}
-              fill={tile.shade}
-              transform={`translate(${CUBE_OFFSET.x} ${CUBE_OFFSET.y})`}
-            />
+            <path key={`${tile.id}-cube`} d={tile.extrusion} fill={tile.shade} />
           ))}
         </g>
         <g>
@@ -34,7 +34,7 @@ export function BogotaAirMap({ stations }: { stations: IbocaStation[] }) {
               d={tile.path}
               fill={tile.fill}
               stroke={tile.stroke}
-              strokeWidth="0.7"
+              strokeWidth="0.85"
               strokeLinejoin="round"
             >
               <title>{tile.name}</title>
@@ -47,16 +47,18 @@ export function BogotaAirMap({ stations }: { stations: IbocaStation[] }) {
               key={dot.id}
               cx={dot.x}
               cy={dot.y}
-              r={dot.value != null && dot.value > 50 ? 3.1 : 2.4}
+              r={
+                dot.value != null && dot.value > IBOCA_BANDS.bajo.max
+                  ? DOT_RADIUS.aboveBajo
+                  : DOT_RADIUS.rest
+              }
               fill={dot.color}
-              stroke="#f4efe6"
-              strokeWidth="1.1"
-            >
-              <title>
-                {dot.name}
-                {dot.value != null ? ` · ${dot.value}` : ""}
-              </title>
-            </circle>
+              stroke="var(--sky-horizon)"
+              strokeWidth="1.2"
+              aria-label={
+                dot.value != null ? `${dot.name} · ${dot.value}` : dot.name
+              }
+            />
           ))}
         </g>
       </svg>

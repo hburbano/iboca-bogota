@@ -12,7 +12,7 @@ import {
   SelectValue,
   Popover,
 } from "react-aria-components";
-import { asNumber, type IbocaStation } from "@/lib/iboca";
+import { asNumber, translateLevel, type IbocaStation } from "@/lib/iboca";
 
 type Pollutant = "iboca" | "pm25" | "pm10" | "o3";
 
@@ -29,7 +29,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.pm25_iboca),
         conc: station.pm25_concentracion,
-        label: station.rango_nombre_pm25,
+        label: translateLevel(station.rango_nombre_pm25),
         color: station.rango_color_pm25,
         unit: "µg/m³",
       };
@@ -37,7 +37,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.pm10_iboca),
         conc: station.pm10_concentracion,
-        label: station.rango_nombre_pm10,
+        label: translateLevel(station.rango_nombre_pm10),
         color: station.rango_color_pm10,
         unit: "µg/m³",
       };
@@ -45,7 +45,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.O3_iboca),
         conc: station.O3_concentracion,
-        label: station.rango_nombre_o3,
+        label: translateLevel(station.rango_nombre_o3),
         color: station.rango_color_o3,
         unit: "µg/m³",
       };
@@ -53,7 +53,7 @@ function reading(station: IbocaStation, pollutant: Pollutant) {
       return {
         index: asNumber(station.iboca),
         conc: null as number | null,
-        label: station.rango_nombre,
+        label: translateLevel(station.rango_nombre),
         color: station.rango_color,
         unit: null as string | null,
       };
@@ -82,13 +82,13 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-display text-sm tracking-[0.18em] text-[var(--ink-muted)] uppercase">
-            Red RMCAB
+            RMCAB network
           </p>
           <h2 className="mt-2 font-display text-3xl text-[var(--ink)] md:text-4xl">
-            Estaciones en vivo
+            Live stations
           </h2>
           <p className="mt-2 max-w-xl text-[var(--ink-soft)]">
-            Índice y concentraciones por estación de monitoreo en Bogotá.
+            Index and concentrations from Bogotá monitoring stations.
           </p>
         </div>
 
@@ -98,7 +98,7 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
           className="w-full max-w-xs"
         >
           <Label className="mb-1 block text-xs tracking-wide text-[var(--ink-muted)] uppercase">
-            Contaminante
+            Pollutant
           </Label>
           <Button className="flex w-full items-center justify-between rounded-xl border border-[var(--line)] bg-white/70 px-4 py-3 text-left text-[var(--ink)] shadow-[0_1px_0_rgba(20,32,28,0.04)] outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
             <SelectValue />
@@ -125,7 +125,7 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <GridList
-          aria-label="Estaciones IBOCA"
+          aria-label="IBOCA stations"
           selectionMode="single"
           selectedKeys={selected ? new Set([selected]) : new Set()}
           onSelectionChange={(keys) => {
@@ -196,14 +196,14 @@ export function StationExplorer({ stations }: { stations: IbocaStation[] }) {
                   {POLLUTANTS.find((p) => p.id === pollutant)?.label}
                 </p>
                 <p className="font-medium text-[var(--ink)]">
-                  {activeReading.label || "Sin clasificación"}
+                  {activeReading.label || "Unclassified"}
                 </p>
               </div>
             </div>
 
             {activeReading.conc != null && activeReading.unit && (
               <p className="mt-6 text-[var(--ink-soft)]">
-                Concentración{" "}
+                Concentration{" "}
                 <span className="font-medium text-[var(--ink)] tabular-nums">
                   {activeReading.conc} {activeReading.unit}
                 </span>

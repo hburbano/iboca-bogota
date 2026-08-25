@@ -13,14 +13,14 @@ const body = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "IBOCA · Aire de Bogotá",
+  title: "IBOCA · Bogotá Air Quality",
   description:
-    "Vista en vivo del Índice Bogotano de Calidad del Aire (IBOCA) y estaciones RMCAB.",
+    "Live view of Bogotá’s Air Quality and Health Risk Index (IBOCA) and RMCAB stations.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${display.variable} ${body.variable} h-full`}>
+    <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="min-h-full antialiased">{children}</body>
     </html>
   );

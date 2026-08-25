@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #14201c;
+  --ink-soft: #3d4f47;
+  --ink-muted: #6b7c74;
+  --mist: #e8f0ea;
+  --line: rgba(20, 32, 28, 0.12);
+  --accent: #1b6b5a;
+  --accent-soft: #d7efe7;
+  --sky-top: #7eb6d9;
+  --sky-mid: #c9dff0;
+  --sky-horizon: #f3ebe0;
+  --ridge: #2f4a3f;
+  --background: var(--sky-horizon);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--ink);
+  background: var(--sky-horizon);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+.hero-sky {
+  background:
+    radial-gradient(120% 80% at 70% -10%, color-mix(in srgb, var(--aqi) 28%, transparent), transparent 55%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 42%, var(--sky-horizon) 78%, #efe6d8 100%);
+}
+
+.mountain-band {
+  background:
+    linear-gradient(180deg, transparent, rgba(20, 32, 28, 0.08)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath fill='%232f4a3f' fill-opacity='0.55' d='M0 160 L120 120 L240 150 L400 90 L560 140 L720 70 L900 130 L1080 85 L1260 140 L1440 100 L1440 220 L0 220 Z'/%3E%3Cpath fill='%2314201c' fill-opacity='0.35' d='M0 190 L180 150 L340 175 L520 130 L700 170 L880 125 L1100 165 L1300 140 L1440 170 L1440 220 L0 220 Z'/%3E%3C/svg%3E")
+      bottom center / 100% 100% no-repeat;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(-2%);
+  }
+  to {
+    transform: translateX(2%);
+  }
+}
+
+.animate-rise {
+  animation: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-drift {
+  animation: drift 14s ease-in-out infinite alternate;
+}
+
+.station-panel {
+  box-shadow: 0 24px 60px rgba(20, 32, 28, 0.08);
+}

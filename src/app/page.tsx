@@ -1,5 +1,6 @@
 import dynamic from "next/dynamic";
 import { BogotaAirMap } from "@/components/BogotaAirMap";
+import { BogotaRidge } from "@/components/BogotaRidge";
 import {
   cityIndex,
   formatBogotaDate,
@@ -35,8 +36,7 @@ export default async function Home() {
   const stations = result.ok ? result.stations : [];
   const city = cityIndex(stations);
   const updated =
-    formatBogotaDate(latestReadingAt(stations)) ??
-    "Sin actualización reciente";
+    formatBogotaDate(latestReadingAt(stations)) ?? "Sin actualización reciente";
   const aqiColor = city.color ? `#${city.color}` : "var(--sky-top)";
 
   return (
@@ -127,7 +127,7 @@ export default async function Home() {
           )}
         </div>
 
-        <div className="mountain-band pointer-events-none absolute inset-x-0 bottom-0 h-20 md:h-28" />
+        <BogotaRidge />
       </header>
 
       <main
